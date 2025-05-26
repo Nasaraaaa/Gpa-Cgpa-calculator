@@ -6,7 +6,8 @@ A website that calculates students' gpa, cgpa and class rank based on their grad
 To run frontend written in React Js
 
 - cd frontend
-- npm run dev
+- Run `npm install`
+- Run `npm run dev`
 
 
 To run backend server written in Nodejs and express with Postgres as DB
