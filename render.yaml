@@ -48,3 +48,4 @@
   envVars:
     - key: REACT_APP_BACKEND_URL # Example for React, adjust as needed
       value: https://gpa-calculator-backend.onrender.com # Use your backend's Render URL here
+      

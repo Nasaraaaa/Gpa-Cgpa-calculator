@@ -302,6 +302,114 @@ app.get('/semesters', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /predict-results:
+ *   post:
+ *     summary: Predict academic performance based on GPA per semester
+ *     tags: [Results]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               no_of_semeter:
+ *                 type: number
+ *               semesters:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     courses:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           code:
+ *                             type: string
+ *                           title:
+ *                             type: string
+ *                           creditUnits:
+ *                             type: number
+ *                           grade:
+ *                             type: string
+ *                           gradePoint:
+ *                             type: number
+ *     responses:
+ *       200:
+ *         description: Predicted results summary
+ */
+app.post('/predict-results', (req, res) => {
+    try {
+        const { no_of_semeter, semesters } = req.body;
+
+        if (!no_of_semeter || !semesters || !Array.isArray(semesters)) {
+            return res.status(400).json({ message: "Invalid input format." });
+        }
+
+        // Step 1: Compute GPA per semester from courses
+        const computedSemesters = semesters.map((sem, idx) => {
+            let totalPoints = 0;
+            let totalUnits = 0;
+
+            sem.courses.forEach(course => {
+                totalPoints += course.gradePoint * course.creditUnits;
+                totalUnits += course.creditUnits;
+            });
+
+            const gpa = totalUnits === 0 ? 0 : parseFloat((totalPoints / totalUnits).toFixed(2));
+
+            return {
+                ...sem,
+                gpa
+            };
+        });
+
+        // Step 2: Calculate cumulative GPA
+        const totalGpa = computedSemesters.reduce((acc, sem) => acc + sem.gpa, 0);
+        const cumulativeGpa = parseFloat((totalGpa / no_of_semeter).toFixed(2));
+
+        // Step 3: Generate a mock but slightly randomized class rank
+        const classSize = 65;
+        const rank = Math.max(1, Math.floor((1 - cumulativeGpa / 5) * classSize));
+        const classRank = `${rank}/${classSize}`;
+
+        // Step 4: Determine degree class
+        let degreeClass = "Second Class Lower";
+        if (cumulativeGpa >= 4.5) degreeClass = "First Class Honours";
+        else if (cumulativeGpa >= 3.5) degreeClass = "Second Class Upper";
+        else if (cumulativeGpa >= 2.5) degreeClass = "Second Class Lower";
+        else if (cumulativeGpa >= 1.5) degreeClass = "Third Class";
+        else degreeClass = "Pass";
+
+        // Step 5: Create performance summary
+        const performance = computedSemesters.map((sem, idx) => ({
+            semester: sem.name || `S${idx + 1}`,
+            gpa: sem.gpa
+        }));
+
+        // Final output
+        return res.status(200).json({
+            cumulativeGpa,
+            classRank,
+            degreeClass,
+            performance
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Prediction failed." });
+    }
+});
+
 // Start server
 async function startServer() {
     await initializeDatabase();
