@@ -8,8 +8,11 @@ import {
 import { Semester } from "./GpaCalculator";
 type ResultsDisplayProps = {
   cgpa: number;
-  rank: number;
+  rank: string;
   classSize: number;
+  recommendations: string[];
+  performance: { semester: string; gpa: number }[];
+  topPercent: string;
   degreeClass: string;
   semesters: Semester[];
 };
@@ -17,6 +20,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   cgpa,
   rank,
   classSize,
+  performance,
+  topPercent,
+  recommendations,
   degreeClass,
   semesters,
 }) => {
@@ -61,10 +67,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <TrophyIcon className="text-yellow-500" size={20} />
             </div>
             <p className="text-3xl font-poppins font-bold text-indigo-600">
-              {rank}/{classSize}
+              {rank}
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              Top {Math.round((rank / classSize) * 100)}% of class
+              Top {topPercent} of class
             </p>
           </div>
           {/* Degree Classification Card */}
@@ -89,7 +95,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <TrendingUpIcon className="text-green-500" size={20} />
             </div>
             <div className="flex items-center gap-2">
-              {semesters.slice(0, 4).map((semester, index) => (
+              {performance.slice(0, 4).map((item, index) => (
                 <div
                   key={index}
                   className="flex-1 bg-gray-100 rounded-md p-2 text-center"
@@ -99,29 +105,29 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   </p>
                   <p
                     className={`text-sm font-poppins font-semibold ${
-                      semester.gpa >= 4.0
+                      item.gpa >= 4.0
                         ? "text-green-600"
-                        : semester.gpa >= 3.0
+                        : item.gpa >= 3.0
                         ? "text-blue-600"
                         : "text-orange-600"
                     }`}
                   >
-                    {semester.gpa.toFixed(1)}
+                    {item.gpa.toFixed(1)}
                   </p>
                 </div>
               ))}
             </div>
             <p className="text-sm font-poppins text-gray-500 mt-3">
-              {semesters.length > 1
-                ? semesters[semesters.length - 1].gpa >
-                  semesters[semesters.length - 2].gpa
+              {performance.length > 1
+                ? performance[performance.length - 1].gpa >
+                  performance[performance.length - 2].gpa
                   ? "Your performance is improving!"
                   : "Focus on improving your grades"
                 : "Add more semesters to track progress"}
             </p>
           </div>
         </div>
-        <div className="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
+        {/* <div className="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
           <h4 className="text-lg font-poppins font-medium text-gray-800 mb-2">
             Recommendations
           </h4>
@@ -157,7 +163,32 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               semester.
             </li>
           </ul>
-        </div>
+        </div> */}
+        {recommendations.length > 0 && (
+          <div className="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h4 className="text-lg font-poppins font-medium text-gray-800 mb-2">
+              Recommendations
+            </h4>
+            <ul className="list-disc list-inside font-poppins space-y-1">
+              {recommendations.map((rec, idx) => {
+                const cgpacheck = parseFloat(String(cgpa));
+                let textColor = "text-gray-700";
+                if (cgpacheck < 2.0) textColor = "text-red-600";
+                else if (cgpacheck >= 4.0) textColor = "text-green-600";
+                else if (cgpacheck >= 2.0 && cgpacheck < 3.0)
+                  textColor = "text-yellow-600";
+                else if (cgpacheck >= 3.0 && cgpacheck < 4.0)
+                  textColor = "text-blue-600";
+
+                return (
+                  <li key={idx} className={`${textColor} font-poppins`}>
+                    {rec}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

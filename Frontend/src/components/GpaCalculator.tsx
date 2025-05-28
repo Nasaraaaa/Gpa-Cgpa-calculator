@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
 import { ResultsDisplay } from "./ResultsDisplay";
 import { SemesterList } from "./SemesterList";
-import {
-  calculateGPA,
-  calculateCGPA,
-  predictDegreeClass,
-} from "../utils/calculations";
+import { calculateGPA } from "../utils/calculations";
+import axios from "axios";
+import { toast } from "react-toastify";
+type PredictResultResponse = {
+  data: {
+    cgpa: string;
+    rank: string;
+    topPercent: string;
+    degreeClass: string;
+    performance: { semester: string; gpa: number }[];
+    recommendations: string[];
+  };
+};
+
 export type Course = {
   id: string;
   code: string;
@@ -31,10 +40,10 @@ export const GpaCalculator = () => {
     const saved = localStorage.getItem("gpa_classSize");
     return saved ? JSON.parse(saved) : 65;
   });
-  // Other state
-  const [rank, setRank] = useState<number | null>(null);
-  const [cgpa, setCgpa] = useState<number | null>(null);
-  const [degreeClass, setDegreeClass] = useState<string | null>(null);
+  // // Other state
+  // const [rank, setRank] = useState<number | null>(null);
+  // const [cgpa, setCgpa] = useState<number | null>(null);
+  // const [degreeClass, setDegreeClass] = useState<string | null>(null);
 
   // 2) Whenever semesters *or* classSize change, persist them
   useEffect(() => {
@@ -82,17 +91,58 @@ export const GpaCalculator = () => {
   const removeSemester = (semesterId: string) => {
     setSemesters(semesters.filter((sem) => sem.id !== semesterId));
   };
-  const calculateResults = () => {
-    const calculatedCgpa = calculateCGPA(semesters);
-    setCgpa(calculatedCgpa);
-    let calculatedRank = Math.max(
-      1,
-      Math.floor((1 - calculatedCgpa / 5) * classSize)
-    );
-    calculatedRank = Math.min(classSize, calculatedRank);
-    setRank(calculatedRank);
-    setDegreeClass(predictDegreeClass(calculatedCgpa));
+  // const calculateResults = () => {
+  //   const calculatedCgpa = calculateCGPA(semesters);
+  //   setCgpa(calculatedCgpa);
+  //   let calculatedRank = Math.max(
+  //     1,
+  //     Math.floor((1 - calculatedCgpa / 5) * classSize)
+  //   );
+  //   calculatedRank = Math.min(classSize, calculatedRank);
+  //   setRank(calculatedRank);
+  //   setDegreeClass(predictDegreeClass(calculatedCgpa));
+  // };
+  const [loading, setLoading] = useState(false);
+  const [predictResult, setPredictResult] =
+    useState<PredictResultResponse | null>(null);
+
+  const calculateResults = async () => {
+    if (!user) return;
+    setLoading(true);
+
+    const payload = {
+      no_of_semeter: semesters.length,
+      semesters: semesters.map((sem) => ({
+        id: sem.id,
+        name: sem.name,
+        courses: sem.courses.map((c) => ({
+          id: c.id,
+          code: c.code,
+          title: c.title,
+          creditUnits: c.creditUnits,
+          grade: c.grade,
+          gradePoint: c.gradePoint,
+        })),
+      })),
+    };
+
+    try {
+      const res = await axios.post<PredictResultResponse>(
+        "https://gpa-cgpa-calculator-e7jw.onrender.com/predict-results",
+        payload
+      );
+
+      setPredictResult(res.data);
+    } catch (error: any) {
+      toast(error?.response?.data?.message || "Failed to fetch results", {
+        type: "error",
+      });
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
+
   const [user, setUser] = useState<{
     message: string;
     data: {
@@ -111,9 +161,14 @@ export const GpaCalculator = () => {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-8">
-        <h2 className="text-3xl font-poppins font-semibold text-gray-800 mb-4">
-          Hello, {user?.data.fullName}
-        </h2>
+        <div className="flex flex-row justify-between items-center mb-4">
+          <h2 className="text-3xl font-poppins font-semibold text-gray-800">
+            Hello, {user?.data.fullName}
+          </h2>
+          <h2 className="text-3xl font-poppins font-semibold text-gray-800">
+            Matric Number: {user?.data.matricNumber}
+          </h2>
+        </div>
         <p className="text-gray-600 font-poppins text-sm">
           Enter your course details for each semester to calculate your GPA,
           CGPA, class rank, and projected degree classification.
@@ -153,19 +208,24 @@ export const GpaCalculator = () => {
         </button>
         <button
           onClick={calculateResults}
-          className="bg-blue-600 font-poppins hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition"
-          disabled={semesters.some((sem) => sem.courses.length === 0)}
+          className="bg-blue-600 font-poppins hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition disabled:opacity-50"
+          disabled={
+            semesters.some((sem) => sem.courses.length === 0) || loading
+          }
         >
-          Calculate Results
+          {loading ? "Calculating..." : "Calculate Results"}
         </button>
       </div>
-      {cgpa !== null && rank !== null && degreeClass !== null && (
+      {predictResult && (
         <ResultsDisplay
-          cgpa={cgpa}
-          rank={rank}
+          cgpa={parseFloat(predictResult.data.cgpa)}
+          rank={predictResult.data.rank}
           classSize={classSize}
-          degreeClass={degreeClass}
+          performance={predictResult.data.performance}
+          topPercent={predictResult.data.topPercent}
+          degreeClass={predictResult.data.degreeClass}
           semesters={semesters}
+          recommendations={predictResult.data.recommendations}
         />
       )}
     </div>
