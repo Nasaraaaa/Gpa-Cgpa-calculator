@@ -346,6 +346,48 @@ app.get('/semesters', async (req, res) => {
  *     responses:
  *       200:
  *         description: Predicted results summary
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Prediction successful!
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     cgpa:
+ *                       type: string
+ *                       example: "3.75"
+ *                     rank:
+ *                       type: string
+ *                       example: "10/65"
+ *                     topPercent:
+ *                       type: string
+ *                       example: "15%"
+ *                     degreeClass:
+ *                       type: string
+ *                       example: Second Class Upper
+ *                     performance:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           semester:
+ *                             type: string
+ *                             example: "Semester 1"
+ *                           gpa:
+ *                             type: number
+ *                             example: 3.85
+ *                     recommendations:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: 
+ *                         - Maintain a consistent study schedule.
+ *                         - Seek help from professors or tutors if struggling.
+ *                         - Participate in study groups for collaborative learning.
  */
 app.post('/predict-results', (req, res) => {
     try {
