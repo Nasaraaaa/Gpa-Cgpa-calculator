@@ -1,0 +1,50 @@
+# render.yaml
+# This file defines the infrastructure for your application on Render.com
+
+# Define the Backend Service (Node.js Express API)
+- type: web
+  name: gpa-calculator-backend
+  # The root directory for this service, relative to the repository root.
+  # This tells Render to look inside the 'backend' folder for package.json, server.js, etc.
+  rootDir: backend
+  env: Node
+  plan: free # Or 'starter', 'standard', etc. based on your needs
+  region: oregon # Choose a region closest to your users or preferred location
+  buildCommand: yarn # Installs dependencies from backend/package.json
+  startCommand: node server.js # Starts your server.js file
+  # Environment variables for your backend.
+  # IMPORTANT: Replace these with your actual Neon database credentials.
+  # For production, it's best to set these securely in Render's dashboard,
+  # or use Render's Secret Files feature. This is for demonstration.
+  envVars:
+    - key: DB_USER
+      value: your_db_user
+    - key: DB_HOST
+      value: your_db_host
+    - key: DB_DATABASE
+      value: your_db_database
+    - key: DB_PASSWORD
+      value: your_db_password
+    - key: DB_PORT
+      value: "5432" # PostgreSQL default port
+    - key: PORT
+      value: "3001" # Your application's internal port
+
+# Define the Frontend Service (assuming a static site or a simple React/Vue build)
+# If your frontend is a complex SPA with its own build process (e.g., create-react-app),
+# you might need to adjust the buildCommand and publishPath.
+- type: static # Or 'web' if it's a server-side rendered app
+  name: gpa-calculator-frontend
+  # The root directory for this service, relative to the repository root.
+  # This tells Render to look inside the 'frontend' folder.
+  rootDir: frontend
+  # The command to build your frontend application.
+  # For a simple React app, this might be 'npm run build' or 'yarn build'.
+  # Adjust based on your frontend framework's build script.
+  buildCommand: yarn && yarn build
+  # The path to the directory containing your static assets after the build.
+  # Common values are 'build', 'dist', 'out'. Check your frontend build output.
+  publishPath: frontend/build # Example: adjust this based on your frontend build output
+  envVars:
+    - key: REACT_APP_BACKEND_URL # Example for React, adjust as needed
+      value: https://gpa-calculator-backend.onrender.com # Use your backend's Render URL here
