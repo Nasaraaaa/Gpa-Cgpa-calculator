@@ -182,7 +182,7 @@ app.post('/register', async (req, res) => {
             [matricNumber, fullName, hashedPassword]
         );
 
-        res.status(201).json({
+        res.status(200).json({
             message: 'Registration successful!',
             data: {
                 id: result.rows[0].id,
