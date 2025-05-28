@@ -1,11 +1,13 @@
-import React from 'react';
+import React from "react";
 export const Footer = () => {
-  return <footer className="bg-gray-800 text-white py-4">
+  return (
+    <footer className="bg-gray-800 text-white py-4">
       <div className="container mx-auto px-4 text-center">
-        <p className="text-sm">
+        <p className="text-sm font-poppins">
           © {new Date().getFullYear()} GPA Compass | Helping students track and
           improve their academic performance
         </p>
       </div>
-    </footer>;
+    </footer>
+  );
 };

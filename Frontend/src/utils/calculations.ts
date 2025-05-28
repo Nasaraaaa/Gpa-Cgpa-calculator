@@ -4,7 +4,7 @@ export const calculateGPA = (courses: Course[]): number => {
   if (courses.length === 0) return 0;
   let totalQualityPoints = 0;
   let totalCreditUnits = 0;
-  courses.forEach(course => {
+  courses.forEach((course) => {
     totalQualityPoints += course.gradePoint * course.creditUnits;
     totalCreditUnits += course.creditUnits;
   });
@@ -13,7 +13,7 @@ export const calculateGPA = (courses: Course[]): number => {
 // Calculate CGPA across all semesters
 export const calculateCGPA = (semesters: Semester[]): number => {
   let allCourses: Course[] = [];
-  semesters.forEach(semester => {
+  semesters.forEach((semester) => {
     allCourses = [...allCourses, ...semester.courses];
   });
   return calculateGPA(allCourses);
