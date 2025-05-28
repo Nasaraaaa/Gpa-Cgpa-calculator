@@ -397,12 +397,25 @@ app.post('/predict-results', (req, res) => {
         }));
 
         // Final output
-        return res.status(200).json({
-            cumulativeGpa,
-            classRank,
-            degreeClass,
-            performance
-        });
+        return res.status(200).json(
+            {
+                message: "Prediction successful!",
+                data: {
+                    cgpa: cumulativeGpa.toFixed(2),
+                    rank: classRank,
+                    topPercent: `${Math.round((rank / classSize) * 100)}%`,
+                    degreeClass,
+                    performance,
+                    recommendations: [
+                        "Maintain a consistent study schedule.",
+                        "Seek help from professors or tutors if struggling.",
+                        "Participate in study groups for collaborative learning."
+                    ]
+                }
+            }
+
+
+        );
 
     } catch (err) {
         console.error(err);
